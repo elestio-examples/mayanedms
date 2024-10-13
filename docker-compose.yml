@@ -116,7 +116,7 @@ services:
     #  - "5432:5432"
     profiles:
       - postgresql
-    restart: unless-stopped
+    restart: always
     shm_size: 128m
     volumes:
       - ./postgres:/var/lib/postgresql/data
@@ -369,7 +369,7 @@ services:
       - "${MAYAN_TRAEFIK_HTTPS_PORT:-443}:443"
     profiles:
       - traefik
-    restart: unless-stopped
+    restart: always
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./traefik-certificates-letsencrypt:/traefik-certificates-letsencrypt
