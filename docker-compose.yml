@@ -118,7 +118,8 @@ services:
       - postgresql
     restart: unless-stopped
     shm_size: 128m
-    volumes: -./postgres:/var/lib/postgresql/data
+    volumes:
+      - ./postgres:/var/lib/postgresql/data
       - ./postgres-initdb:/docker-entrypoint-initdb.d/
     ports:
       - 172.17.0.1:34231:5432
