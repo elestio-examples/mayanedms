@@ -12,7 +12,7 @@ x-mayan-container: &mayan-container
   restart: always
   volumes:
     - ./app:/var/lib/mayan
-    - ./scripts/literals.py:/opt/mayan-edms/lib/python3.11/site-packages/mayan/apps/autoadmin/literals.py
+    - ./scripts/credentials.html:/opt/mayan-edms/lib/python3.11/site-packages/mayan/apps/autoadmin/templates/autoadmin/credentials.html
     # Optional volumes to access external data like staging or watch folders
     # - /opt/staging_folder:/staging_folder
     # - /opt/watch_folder:/watch_folder
@@ -133,14 +133,6 @@ services:
       RABBITMQ_DEFAULT_VHOST: ${MAYAN_RABBITMQ_VHOST}
     hostname: ${MAYAN_DOCKER_RABBITMQ_HOSTNAME}
     image: rabbitmq:3.13.7-management-alpine
-    # labels:
-    #   - "traefik.enable=${MAYAN_TRAEFIK_RABBITMQ_ENABLE:-false}"
-    #   - "traefik.http.routers.rabbitmq_admin_http.entrypoints=rabbitmq_admin_http"
-    #   - "traefik.http.routers.rabbitmq_admin_http.rule=Host(`${MAYAN_TRAEFIK_EXTERNAL_DOMAIN}`)"
-    #   - "traefik.http.routers.rabbitmq_admin_http.service=rabbitmq_admin_http"
-    #   - "traefik.http.routers.rabbitmq_admin_http.tls=true"
-    #   - "traefik.http.routers.rabbitmq_admin_http.tls.certresolver=letsencrypt"
-    #   - "traefik.http.services.rabbitmq_admin_http.loadbalancer.server.port=15672"
     networks:
       - mayan
     # Enable the first port to allow access to the administration interface.

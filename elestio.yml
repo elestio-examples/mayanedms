@@ -82,6 +82,12 @@ environments:
     value: "25"
   - key: "MAYAN_DEFAULT_FROM_EMAIL"
     value: "[DOMAIN]@vm.elestio.app"
+  - key: "MAYAN_AUTOADMIN_EMAIL"
+    value: "[EMAIL]"
+  - key: "MAYAN_AUTOADMIN_PASSWORD"
+    value: "random_password"
+  - key: "MAYAN_AUTOADMIN_USERNAME"
+    value: "admin"
 
 config:
   runTime: "dockerCompose"

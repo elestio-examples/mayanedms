@@ -7,13 +7,12 @@ mkdir -p ./elasticsearch
 chown -R 1000:1000 ./app
 chown -R 1000:1000 ./elasticsearch
 
-cat << EOT > ./scripts/literals.py
-COMMAND_NAME_AUTOADMIN_CREATE = 'autoadmin_create'
-COMMAND_NAME_CREATESUPERUSER = 'createsuperuser'
+cat << EOT > ./scripts/credentials.html
+{% load i18n %}
 
-DEFAULT_EMAIL = '${ADMIN_EMAIL}'
-DEFAULT_PASSWORD = '${ADMIN_PASSWORD}'
-DEFAULT_USERNAME = 'admin'
+{% load common_tags %}
+
+{% common_project_information '__title__' as project_title %}
 EOT
 
 cat <<EOT > ./servers.json

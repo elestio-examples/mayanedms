@@ -3,6 +3,3 @@ set -o allexport; source .env; set +o allexport;
 
 echo "Waiting for software to be ready ..."
 sleep 90s;
-docker-compose down;
-docker-compose up -d;
-sleep 40s;
