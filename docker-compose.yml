@@ -7,17 +7,12 @@ x-mayan-container: &mayan-container
     MAYAN_LOCK_MANAGER_BACKEND: mayan.apps.lock_manager.backends.redis_lock.RedisLock
     MAYAN_LOCK_MANAGER_BACKEND_ARGUMENTS: "{'redis_url':'redis://:${MAYAN_REDIS_PASSWORD}@${MAYAN_DOCKER_REDIS_HOSTNAME}:${MAYAN_DOCKER_REDIS_PORT}/${MAYAN_REDIS_LOCK_MANAGER_DATABASE}'}"
   image: mayanedms/mayanedms:${SOFTWARE_VERSION_TAG}
-  logging:
-    driver: "json-file"
-    options:
-      max-size: "100m"
-      max-file: "3"
-      mode: "non-blocking"
   networks:
     - mayan
   restart: always
   volumes:
     - ./app:/var/lib/mayan
+    - ./scripts/literals.py:/opt/mayan-edms/lib/python3.11/site-packages/mayan/apps/autoadmin/literals.py
     # Optional volumes to access external data like staging or watch folders
     # - /opt/staging_folder:/staging_folder
     # - /opt/watch_folder:/watch_folder
@@ -34,19 +29,20 @@ x-mayan-frontend-ports:
     # []
 
 x-mayan-traefik-labels: &mayan-traefik-labels
-  labels:
-    - "traefik.enable=${MAYAN_TRAEFIK_FRONTEND_ENABLE:-false}"
-    - "traefik.http.middlewares.mayan_frontend_http_redirect.redirectscheme.scheme=https"
-    - "traefik.http.middlewares.mayan_frontend_http_redirect.redirectscheme.permanent=false"
-    - "traefik.http.routers.mayan_frontend_http.entrypoints=http"
-    - "traefik.http.routers.mayan_frontend_http.middlewares=mayan_frontend_http_redirect"
-    - "traefik.http.routers.mayan_frontend_http.rule=Host(`${MAYAN_TRAEFIK_EXTERNAL_DOMAIN}`)"
-    - "traefik.http.routers.mayan_frontend_https.entrypoints=https"
-    - "traefik.http.routers.mayan_frontend_https.rule=Host(`${MAYAN_TRAEFIK_EXTERNAL_DOMAIN}`)"
-    - "traefik.http.routers.mayan_frontend_https.service=mayan_frontend_http"
-    - "traefik.http.routers.mayan_frontend_https.tls=true"
-    - "traefik.http.routers.mayan_frontend_https.tls.certresolver=letsencrypt"
-    - "traefik.http.services.mayan_frontend_http.loadbalancer.server.port=8000"
+  # labels:
+  #   - "traefik.enable=${MAYAN_TRAEFIK_FRONTEND_ENABLE:-false}"
+  #   - "traefik.http.middlewares.mayan_frontend_http_redirect.redirectscheme.scheme=https"
+  #   - "traefik.http.middlewares.mayan_frontend_http_redirect.redirectscheme.permanent=false"
+  #   - "traefik.http.routers.mayan_frontend_http.entrypoints=http"
+  #   - "traefik.http.routers.mayan_frontend_http.middlewares=mayan_frontend_http_redirect"
+  #   - "traefik.http.routers.mayan_frontend_http.rule=Host(`${MAYAN_TRAEFIK_EXTERNAL_DOMAIN}`)"
+  #   - "traefik.http.routers.mayan_frontend_https.entrypoints=https"
+  #   - "traefik.http.routers.mayan_frontend_https.rule=Host(`${MAYAN_TRAEFIK_EXTERNAL_DOMAIN}`)"
+  #   - "traefik.http.routers.mayan_frontend_https.service=mayan_frontend_http"
+  #   - "traefik.http.routers.mayan_frontend_https.tls=true"
+  #   - "traefik.http.routers.mayan_frontend_https.tls.certresolver=letsencrypt"
+  #   - "traefik.http.services.mayan_frontend_http.loadbalancer.server.port=8000"
+
 
 networks:
   mayan:
@@ -69,7 +65,7 @@ services:
       - xpack.security.enabled=true
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
       - ELASTIC_PASSWORD=${MAYAN_ELASTICSEARCH_PASSWORD}
-    image: elasticsearch:7.17.22
+    image: elasticsearch:7.17.24
     networks:
       - mayan
     # Enable to allow external access to the database.
@@ -108,7 +104,7 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
-    image: ${MAYAN_DOCKER_POSTGRESQL_IMAGE:-postgres}:${MAYAN_DOCKER_POSTGRESQL_TAG:-14.12-alpine3.20}
+    image: elestio/postgres:15
     networks:
       - mayan
     # Enable to allow external access to the database.
@@ -137,7 +133,7 @@ services:
       PGHOST: ${MAYAN_DATABASE_HOST}
       PGPASSWORD: ${MAYAN_DATABASE_PASSWORD}
       PGUSER: ${MAYAN_DATABASE_USER}
-    image: elestio/postgres:16
+    image: elestio/postgres:15
     networks:
       - mayan
     profiles:
@@ -152,15 +148,15 @@ services:
       RABBITMQ_DEFAULT_PASS: ${MAYAN_RABBITMQ_PASSWORD}
       RABBITMQ_DEFAULT_VHOST: ${MAYAN_RABBITMQ_VHOST}
     hostname: ${MAYAN_DOCKER_RABBITMQ_HOSTNAME}
-    image: rabbitmq:3.13.4-management-alpine
-    labels:
-      - "traefik.enable=${MAYAN_TRAEFIK_RABBITMQ_ENABLE:-false}"
-      - "traefik.http.routers.rabbitmq_admin_http.entrypoints=rabbitmq_admin_http"
-      - "traefik.http.routers.rabbitmq_admin_http.rule=Host(`${MAYAN_TRAEFIK_EXTERNAL_DOMAIN}`)"
-      - "traefik.http.routers.rabbitmq_admin_http.service=rabbitmq_admin_http"
-      - "traefik.http.routers.rabbitmq_admin_http.tls=true"
-      - "traefik.http.routers.rabbitmq_admin_http.tls.certresolver=letsencrypt"
-      - "traefik.http.services.rabbitmq_admin_http.loadbalancer.server.port=15672"
+    image: rabbitmq:3.13.7-management-alpine
+    # labels:
+    #   - "traefik.enable=${MAYAN_TRAEFIK_RABBITMQ_ENABLE:-false}"
+    #   - "traefik.http.routers.rabbitmq_admin_http.entrypoints=rabbitmq_admin_http"
+    #   - "traefik.http.routers.rabbitmq_admin_http.rule=Host(`${MAYAN_TRAEFIK_EXTERNAL_DOMAIN}`)"
+    #   - "traefik.http.routers.rabbitmq_admin_http.service=rabbitmq_admin_http"
+    #   - "traefik.http.routers.rabbitmq_admin_http.tls=true"
+    #   - "traefik.http.routers.rabbitmq_admin_http.tls.certresolver=letsencrypt"
+    #   - "traefik.http.services.rabbitmq_admin_http.loadbalancer.server.port=15672"
     networks:
       - mayan
     # Enable the first port to allow access to the administration interface.
@@ -327,52 +323,52 @@ services:
       - multi_container
     restart: "no"
 
-  traefik:
-    container_name: "traefik"
-    command:
-      # - "--log.level=DEBUG"
-      - "--api.dashboard=true"
-      - "--api.insecure=${MAYAN_TRAEFIK_API_INSECURE:-false}"
-      - "--certificatesresolvers.letsencrypt.acme.caserver=${MAYAN_TRAEFIK_LETS_ENCRYPT_SERVER:-https://acme-staging-v02.api.letsencrypt.org/directory}"
-      - "--certificatesresolvers.letsencrypt.acme.dnschallenge=${MAYAN_TRAEFIK_LETS_ENCRYPT_DNS_CHALLENGE:-false}"
-      - "--certificatesresolvers.letsencrypt.acme.dnschallenge.provider=${MAYAN_TRAEFIK_LETS_ENCRYPT_DNS_CHALLENGE_PROVIDER}"
-      - "--certificatesresolvers.letsencrypt.acme.email=${MAYAN_TRAEFIK_LETS_ENCRYPT_EMAIL}"
-      - "--certificatesresolvers.letsencrypt.acme.storage=/traefik-certificates-letsencrypt/acme.json"
-      - "--certificatesresolvers.letsencrypt.acme.tlschallenge=${MAYAN_TRAEFIK_LETS_ENCRYPT_TLS_CHALLENGE:-false}"
-      - "--entrypoints.http.address=:80"
-      - "--entrypoints.https.address=:443"
-      - "--entrypoints.keycloak_http.address=:${MAYAN_TRAEFIK_KEYCLOAK_HTTP_PORT:-8081}"
-      - "--entrypoints.rabbitmq_admin_http.address=:15672"
-      - "--entrypoints.traefik_dashboard_http.address=:8080"
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
-    # - Add DNS provider variables (https://doc.traefik.io/traefik/https/acme/#providers)
-    # environment:
-    image: ${MAYAN_DOCKER_TRAEFIK_IMAGE:-traefik}:${MAYAN_DOCKER_TRAEFIK_TAG:-v2.5.7}
-    labels:
-      - "traefik.enable=${MAYAN_TRAEFIK_DASHBOARD_ENABLE:-false}"
-      - "traefik.http.middlewares.basic-auth-global.basicauth.users=${MAYAN_TRAEFIK_DASHBOARD_AUTHENTICATION}"
-      - "traefik.http.routers.traefik_https.entrypoints=traefik_dashboard_http"
-      - "traefik.http.routers.traefik_https.middlewares=basic-auth-global"
-      - "traefik.http.routers.traefik_https.rule=Host(`${MAYAN_TRAEFIK_EXTERNAL_DOMAIN}`)"
-      - "traefik.http.routers.traefik_https.service=api@internal"
-      - "traefik.http.routers.traefik_https.tls=true"
-      - "traefik.http.routers.traefik_https.tls.certresolver=letsencrypt"
-    networks:
-      - mayan
-      - traefik
-    ports:
-      - "${MAYAN_RABBITMQ_ADMIN_HTTP_PORT:-15672}:15672"
-      - "${MAYAN_TRAEFIK_DASHBOARD_HTTP_PORT:-8080}:8080"
-      - "${MAYAN_TRAEFIK_KEYCLOAK_HTTP_PORT:-8081}:8081"
-      - "${MAYAN_TRAEFIK_HTTP_PORT:-80}:80"
-      - "${MAYAN_TRAEFIK_HTTPS_PORT:-443}:443"
-    profiles:
-      - traefik
-    restart: always
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./traefik-certificates-letsencrypt:/traefik-certificates-letsencrypt
+  # traefik:
+  #   container_name: "traefik"
+  #   command:
+  #     # - "--log.level=DEBUG"
+  #     - "--api.dashboard=true"
+  #     - "--api.insecure=${MAYAN_TRAEFIK_API_INSECURE:-false}"
+  #     - "--certificatesresolvers.letsencrypt.acme.caserver=${MAYAN_TRAEFIK_LETS_ENCRYPT_SERVER:-https://acme-staging-v02.api.letsencrypt.org/directory}"
+  #     - "--certificatesresolvers.letsencrypt.acme.dnschallenge=${MAYAN_TRAEFIK_LETS_ENCRYPT_DNS_CHALLENGE:-false}"
+  #     - "--certificatesresolvers.letsencrypt.acme.dnschallenge.provider=${MAYAN_TRAEFIK_LETS_ENCRYPT_DNS_CHALLENGE_PROVIDER}"
+  #     - "--certificatesresolvers.letsencrypt.acme.email=${MAYAN_TRAEFIK_LETS_ENCRYPT_EMAIL}"
+  #     - "--certificatesresolvers.letsencrypt.acme.storage=/traefik-certificates-letsencrypt/acme.json"
+  #     - "--certificatesresolvers.letsencrypt.acme.tlschallenge=${MAYAN_TRAEFIK_LETS_ENCRYPT_TLS_CHALLENGE:-false}"
+  #     - "--entrypoints.http.address=:80"
+  #     - "--entrypoints.https.address=:443"
+  #     - "--entrypoints.keycloak_http.address=:${MAYAN_TRAEFIK_KEYCLOAK_HTTP_PORT:-8081}"
+  #     - "--entrypoints.rabbitmq_admin_http.address=:15672"
+  #     - "--entrypoints.traefik_dashboard_http.address=:8080"
+  #     - "--providers.docker=true"
+  #     - "--providers.docker.exposedbydefault=false"
+  #   # - Add DNS provider variables (https://doc.traefik.io/traefik/https/acme/#providers)
+  #   # environment:
+  #   image: ${MAYAN_DOCKER_TRAEFIK_IMAGE:-traefik}:${MAYAN_DOCKER_TRAEFIK_TAG:-v2.5.7}
+  #   labels:
+  #     - "traefik.enable=${MAYAN_TRAEFIK_DASHBOARD_ENABLE:-false}"
+  #     - "traefik.http.middlewares.basic-auth-global.basicauth.users=${MAYAN_TRAEFIK_DASHBOARD_AUTHENTICATION}"
+  #     - "traefik.http.routers.traefik_https.entrypoints=traefik_dashboard_http"
+  #     - "traefik.http.routers.traefik_https.middlewares=basic-auth-global"
+  #     - "traefik.http.routers.traefik_https.rule=Host(`${MAYAN_TRAEFIK_EXTERNAL_DOMAIN}`)"
+  #     - "traefik.http.routers.traefik_https.service=api@internal"
+  #     - "traefik.http.routers.traefik_https.tls=true"
+  #     - "traefik.http.routers.traefik_https.tls.certresolver=letsencrypt"
+  #   networks:
+  #     - mayan
+  #     - traefik
+  #   ports:
+  #     - "${MAYAN_RABBITMQ_ADMIN_HTTP_PORT:-15672}:15672"
+  #     - "${MAYAN_TRAEFIK_DASHBOARD_HTTP_PORT:-8080}:8080"
+  #     - "${MAYAN_TRAEFIK_KEYCLOAK_HTTP_PORT:-8081}:8081"
+  #     - "${MAYAN_TRAEFIK_HTTP_PORT:-80}:80"
+  #     - "${MAYAN_TRAEFIK_HTTPS_PORT:-443}:443"
+  #   profiles:
+  #     - traefik
+  #   restart: always
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock:ro
+  #     - ./traefik-certificates-letsencrypt:/traefik-certificates-letsencrypt
 
   pgadmin4:
     image: elestio/pgadmin:latest

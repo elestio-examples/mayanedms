@@ -7,6 +7,15 @@ mkdir -p ./elasticsearch
 chown -R 1000:1000 ./app
 chown -R 1000:1000 ./elasticsearch
 
+cat << EOT > ./scripts/literals.py
+COMMAND_NAME_AUTOADMIN_CREATE = 'autoadmin_create'
+COMMAND_NAME_CREATESUPERUSER = 'createsuperuser'
+
+DEFAULT_EMAIL = '${ADMIN_EMAIL}'
+DEFAULT_PASSWORD = '${ADMIN_PASSWORD}'
+DEFAULT_USERNAME = 'admin'
+EOT
+
 cat <<EOT > ./servers.json
 {
     "Servers": {

@@ -74,6 +74,14 @@ environments:
     value: "false"
   - key: "MAYAN_ELASTICSEARCH_PASSWORD"
     value: "random_password"
+  - key: "MAYAN_CSRF_TRUSTED_ORIGINS"
+    value: "['https://[CI_CD_DOMAIN]']"
+  - key: "MAYAN_EMAIL_HOST"
+    value: "172.17.0.1"
+  - key: "MAYAN_EMAIL_PORT"
+    value: "25"
+  - key: "MAYAN_DEFAULT_FROM_EMAIL"
+    value: "[DOMAIN]@vm.elestio.app"
 
 config:
   runTime: "dockerCompose"
